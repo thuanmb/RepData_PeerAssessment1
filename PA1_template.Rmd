@@ -1,25 +1,160 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+author: "Thuan Bui"
+date: "Thursday, December 11, 2014"
+output: html_document
 ---
 
+## Load library
+```{r loadinglibrary, cache=FALSE,message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(knitr)
+library(lubridate)
+library(scales)
+library(xtable)
+```
 
-## Loading and preprocessing the data
-
+```{r setoptions, echo=FALSE}
+opts_chunk$set(echo=TRUE, message=FALSE)
+```
 
 
 ## What is mean total number of steps taken per day?
-
-
+``` {r loadingdata}
+activity <- read.csv("activity.csv", stringsAsFactors = FALSE)
+originalData <- tbl_df(activity)
+data <- originalData %>% filter(!is.na(steps))
+data <- data %>% mutate(date = as.Date(ymd(date)))
+```
 
 ## What is the average daily activity pattern?
+### Total number of steps taken per day
+``` {r histofsteps}
 
+byDate <- data %>% group_by(date)
+histOfStepsData <- byDate %>% summarize(total_steps = sum(steps))
+histOfSteps <- ggplot(histOfStepsData, aes(date, total_steps))
+print(
+    histOfSteps +
+    geom_bar(stat = "identity", col = rgb(0, 0.5, 0.9), fill = rgb(0, 0.5, 0.9), binwidth = 1) +
+    scale_x_date(breaks = "2 days", labels = date_format("%m/%d")) +
+    theme(axis.text.x = element_text(angle = 60)) +
+    xlab("Date") +
+    ylab("Total steps taken per day") +
+    ggtitle("Total steps taken per day")
+)
+```
 
+### The mean and median total number of steps taken per day
+``` {r meanandmedianofstepsperday, results="asis"}
+perDaySummary <- byDate %>% summarize(
+        mean_step = mean(steps),
+        median_step = median(steps)
+    )
+perDaySummary <- perDaySummary %>% mutate(date = as.character.Date(date))
+perDayTable <- xtable(as.data.frame(perDaySummary))
+print(perDayTable, type = "html")
+```
+
+## What is the average daily activity pattern?
+### Plot of average number of steps taken per interval
+``` {r histofinterval}
+histOfIntervalData <- data %>% mutate(
+    all_days = factor(date)
+) 
+histOfInterval <- ggplot(histOfIntervalData, aes(interval, steps))
+print(
+    histOfInterval +
+        facet_grid(all_days~.) +
+        geom_line(size = 1.3, col = rgb(0, 0.5, 0.9)) +
+        xlab("Interval") +
+        ylab("Average number of steps taken") +
+        ggtitle("The 5-minute interval and the average number of steps taken")
+)
+```
+
+### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+``` {r maxstepsperinterval}
+byInterval <- data %>% group_by(interval)
+averageStepData <- byInterval %>% summarize(
+        average_step = mean(steps)
+) 
+maxStep <- max(averageStepData$average_step)
+intervalContainMaxSteps <- averageStepData %>% 
+    filter(average_step - maxStep >= .0 )
+intervalContainMaxStep <- intervalContainMaxSteps$interval
+```
+
+**`r intervalContainMaxStep`** is 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps.
 
 ## Imputing missing values
+``` {r totalmissingval}
+missingVal <- originalData %>% filter(is.na(steps))
+numOfMissingVal <- nrow(missingVal)
+```
+ 
+1. Total number of missing values in the dataset is **`r numOfMissingVal`**.
 
+ 
+2, 3. Devise a strategy for filling in all of the missing values in the dataset.
 
+``` {r devisemissingval}
+filledData <- originalData %>% 
+    group_by(interval) %>%
+    mutate(steps = ifelse(is.na(steps), mean(steps, na.rm = TRUE), steps))
+```
+
+4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+** Total number of steps taken per day **
+``` {r histofsteps_filleddata}
+filledData <- filledData %>%  mutate(date = as.Date(ymd(date)))
+byDate <- filledData %>% group_by(date)
+histOfStepsData <- byDate %>% summarize(total_steps = sum(steps))
+histOfSteps <- ggplot(histOfStepsData, aes(date, total_steps))
+print(
+    histOfSteps +
+    geom_bar(stat = "identity", col = rgb(0, 0.5, 0.9), fill = rgb(0, 0.5, 0.9), binwidth = 1) +
+    scale_x_date(breaks = "2 days", labels = date_format("%m/%d")) +
+    theme(axis.text.x = element_text(angle = 60)) +
+    xlab("Date") +
+    ylab("Total steps taken per day") +
+    ggtitle("Total steps taken per day with filled data")
+)
+```
+
+**The mean and median total number of steps taken per day with filled data**
+``` {r meanandmedianofstepsperday_filleddata, results="asis"}
+perDaySummary <- byDate %>% summarize(
+        mean_step = mean(steps),
+        median_step = median(steps)
+    )
+perDaySummary <- perDaySummary %>% mutate(date = as.character.Date(date))
+perDayTable <- xtable(as.data.frame(perDaySummary))
+print(perDayTable, type = "html")
+```
+
+**Look at plot and table, we can see that the total number of steps taken as well as mean and median is quite diffenrent from the data without filling missing value**
+
+**Imputing missing data help we have an overview of total steps on each day although these steps may missing in some period of a day**
 
 ## Are there differences in activity patterns between weekdays and weekends?
+### Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+``` {r createweekendfilleddata}
+intervalWeekend <- originalData %>% 
+    mutate(week_day = ifelse(wday(date) == 1 |wday(date) == 7, "weekend", "weekday"))
+intervalWeekend  <- intervalWeekend %>% mutate(week_day = factor(week_day))
+```
+
+### Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+``` {r plotweekend_filleddata}
+print(
+    ggplot(intervalWeekend, aes(interval, steps)) +
+    facet_grid(week_day~.) +
+    geom_line(size = 1.3, col = rgb(0, 0.5, 0.9)) +
+    xlab("Interval") +
+    ylab("Average number of steps taken") +
+    ggtitle("The 5-minute interval and the average number of steps\ntaken in weekday and weekend")
+)
+
