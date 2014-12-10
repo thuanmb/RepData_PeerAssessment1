@@ -61,7 +61,7 @@ print(perDayTable, type = "html")
 ```
 
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Thu Dec 11 00:07:28 2014 -->
+<!-- Thu Dec 11 00:15:33 2014 -->
 <table border=1>
 <tr> <th>  </th> <th> date </th> <th> mean_step </th> <th> median_step </th>  </tr>
   <tr> <td align="right"> 1 </td> <td> 2012-10-02 </td> <td align="right"> 0.44 </td> <td align="right"> 0.00 </td> </tr>
@@ -208,7 +208,7 @@ print(perDayTable, type = "html")
 ```
 
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Thu Dec 11 00:07:33 2014 -->
+<!-- Thu Dec 11 00:15:39 2014 -->
 <table border=1>
 <tr> <th>  </th> <th> date </th> <th> mean_step </th> <th> median_step </th>  </tr>
   <tr> <td align="right"> 1 </td> <td> 2012-10-01 </td> <td align="right"> 37.38 </td> <td align="right"> 34.11 </td> </tr>
@@ -282,7 +282,7 @@ print(perDayTable, type = "html")
 ### Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
 ```r
-intervalWeekend <- originalData %>% 
+intervalWeekend <- filledData %>% 
     mutate(week_day = ifelse(wday(date) == 1 |wday(date) == 7, "weekend", "weekday"))
 intervalWeekend  <- intervalWeekend %>% mutate(week_day = factor(week_day))
 ```
@@ -298,10 +298,6 @@ print(
     ylab("Average number of steps taken") +
     ggtitle("The 5-minute interval and the average number of steps\ntaken in weekday and weekend")
 )
-```
-
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk plotweekend_filleddata](figure/plotweekend_filleddata-1.png) 
