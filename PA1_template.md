@@ -61,7 +61,7 @@ print(perDayTable, type = "html")
 ```
 
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Thu Dec 11 00:15:33 2014 -->
+<!-- Thu Dec 11 00:23:33 2014 -->
 <table border=1>
 <tr> <th>  </th> <th> date </th> <th> mean_step </th> <th> median_step </th>  </tr>
   <tr> <td align="right"> 1 </td> <td> 2012-10-02 </td> <td align="right"> 0.44 </td> <td align="right"> 0.00 </td> </tr>
@@ -164,7 +164,7 @@ numOfMissingVal <- nrow(missingVal)
 1. Total number of missing values in the dataset is **2304**.
 
  
-2, 3. Devise a strategy for filling in all of the missing values in the dataset.
+2, 3. **Devise a strategy for filling in all of the missing values in the dataset.**
 
 
 ```r
@@ -175,7 +175,7 @@ filledData <- originalData %>%
 
 4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
-** Total number of steps taken per day **
+**Total number of steps taken per day**
 
 ```r
 filledData <- filledData %>%  mutate(date = as.Date(ymd(date)))
@@ -208,7 +208,7 @@ print(perDayTable, type = "html")
 ```
 
 <!-- html table generated in R 3.1.2 by xtable 1.7-4 package -->
-<!-- Thu Dec 11 00:15:39 2014 -->
+<!-- Thu Dec 11 00:23:39 2014 -->
 <table border=1>
 <tr> <th>  </th> <th> date </th> <th> mean_step </th> <th> median_step </th>  </tr>
   <tr> <td align="right"> 1 </td> <td> 2012-10-01 </td> <td align="right"> 37.38 </td> <td align="right"> 34.11 </td> </tr>
