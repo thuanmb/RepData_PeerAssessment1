@@ -34,44 +34,39 @@ data <- data %>% mutate(date = as.Date(ymd(date)))
 
 byDate <- data %>% group_by(date)
 histOfStepsData <- byDate %>% summarize(total_steps = sum(steps))
-histOfSteps <- ggplot(histOfStepsData, aes(date, total_steps))
+histOfSteps <- ggplot(histOfStepsData, aes(total_steps))
 print(
     histOfSteps +
-    geom_bar(stat = "identity", col = rgb(0, 0.5, 0.9), fill = rgb(0, 0.5, 0.9), binwidth = 1) +
-    scale_x_date(breaks = "2 days", labels = date_format("%m/%d")) +
-    theme(axis.text.x = element_text(angle = 60)) +
-    xlab("Date") +
-    ylab("Total steps taken per day") +
+    geom_histogram(binwidth = 2500, col = rgb(0.9, 0.5, 0), fill = rgb(0, 0.5, 0.9)) +
+    xlab("Total steps taken per day") +
+    ylab("Number of days") +
     ggtitle("Total steps taken per day")
 )
 ```
 
 ### The mean and median total number of steps taken per day
-``` {r meanandmedianofstepsperday, results="asis",message=FALSE}
-perDaySummary <- byDate %>% summarize(
-        mean_step = mean(steps),
-        median_step = median(steps)
-    )
-perDaySummary <- perDaySummary %>% mutate(date = as.character.Date(date))
-perDayTable <- xtable(as.data.frame(perDaySummary))
-print(perDayTable, type = "html")
+``` {r meanandmedianofstepsperday,message=FALSE}
+meanSteps <- mean(histOfStepsData$total_steps)
+medianSteps <- median(histOfStepsData$total_steps)
 ```
+The mean is `r format(meanSteps, big.mark=",")` and the median is `r format(medianSteps, big.mark=",")`
 
 ## What is the average daily activity pattern?
 ### Plot of average number of steps taken per interval
 ``` {r histofinterval,message=FALSE}
-histOfIntervalData <- data %>% mutate(
-    all_days = factor(date)
+byInterval <- data %>% group_by(interval)
+histOfIntervalData <- byInterval %>% mutate(
+    average_step = mean(steps)
 ) 
-histOfInterval <- ggplot(histOfIntervalData, aes(interval, steps))
+histOfInterval <- ggplot(histOfIntervalData, aes(interval, average_step))
 print(
     histOfInterval +
-        facet_grid(all_days~.) +
         geom_line(size = 1.3, col = rgb(0, 0.5, 0.9)) +
-        xlab("Interval") +
+        xlab("5-minute interval") +
         ylab("Average number of steps taken") +
         ggtitle("The 5-minute interval and the average number of steps taken")
 )
+
 ```
 
 ### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
@@ -112,28 +107,23 @@ filledData <- originalData %>%
 filledData <- filledData %>%  mutate(date = as.Date(ymd(date)))
 byDate <- filledData %>% group_by(date)
 histOfStepsData <- byDate %>% summarize(total_steps = sum(steps))
-histOfSteps <- ggplot(histOfStepsData, aes(date, total_steps))
+histOfSteps <- ggplot(histOfStepsData, aes(total_steps))
 print(
     histOfSteps +
-    geom_bar(stat = "identity", col = rgb(0, 0.5, 0.9), fill = rgb(0, 0.5, 0.9), binwidth = 1) +
-    scale_x_date(breaks = "2 days", labels = date_format("%m/%d")) +
-    theme(axis.text.x = element_text(angle = 60)) +
-    xlab("Date") +
-    ylab("Total steps taken per day") +
-    ggtitle("Total steps taken per day with filled data")
+    geom_histogram(binwidth = 2500, col = rgb(0.9, 0.5, 0), fill = rgb(0, 0.5, 0.9)) +
+    xlab("Total steps taken per day") +
+    ylab("Number of days") +
+    ggtitle("Total steps taken per day")
 )
 ```
 
 **The mean and median total number of steps taken per day with filled data**
-``` {r meanandmedianofstepsperday_filleddata, results="asis",message=FALSE}
-perDaySummary <- byDate %>% summarize(
-        mean_step = mean(steps),
-        median_step = median(steps)
-    )
-perDaySummary <- perDaySummary %>% mutate(date = as.character.Date(date))
-perDayTable <- xtable(as.data.frame(perDaySummary))
-print(perDayTable, type = "html")
+``` {r meanandmedianofstepsperday_filleddata, message=FALSE}
+meanSteps <- mean(histOfStepsData$total_steps)
+medianSteps <- median(histOfStepsData$total_steps)
 ```
+The mean is `r format(meanSteps, big.mark=",")` and the median is `r format(medianSteps, big.mark=",")`
+
 
 **Look at plot and table, we can see that the total number of steps taken as well as mean and median is quite diffenrent from the data without filling missing value**
 
@@ -145,15 +135,16 @@ print(perDayTable, type = "html")
 intervalWeekend <- filledData %>% 
     mutate(week_day = ifelse(wday(date) == 1 |wday(date) == 7, "weekend", "weekday"))
 intervalWeekend  <- intervalWeekend %>% mutate(week_day = factor(week_day))
+intervalWeekend  <- intervalWeekend %>% group_by(interval, week_day) %>% summarise(average_step = mean(steps))
 ```
 
 ### Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 ``` {r plotweekend_filleddata,message=FALSE}
 print(
-    ggplot(intervalWeekend, aes(interval, steps)) +
+    ggplot(intervalWeekend, aes(interval, average_step)) +
     facet_grid(week_day~.) +
-    geom_line(size = 1.3, col = rgb(0, 0.5, 0.9)) +
-    xlab("Interval") +
+    geom_line(col = rgb(0, 0.5, 0.9)) +
+    xlab("5-minute interval") +
     ylab("Average number of steps taken") +
     ggtitle("The 5-minute interval and the average number of steps\ntaken in weekday and weekend")
 )
